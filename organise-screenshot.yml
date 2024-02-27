@@ -7,7 +7,7 @@
     - name: Finds all Screenshots in Desktop directory
       find:
         path: /Users/jenishjain/Desktop/
-        patterns: 'Screenshot*'
+        patterns: "Screenshot*"
       register: screenshot_files
     # - name: debug_files
     #   debug:
@@ -16,3 +16,19 @@
     - name: Move found files to a common folder
       command: mv "{{ item.path }}" /Users/jenishjain/Desktop/screenshots/
       with_items: "{{ screenshot_files.files }}"
+    - name: Finds all PDFs in Desktop directory
+      find:
+        path: /Users/jenishjain/Desktop/
+        patterns: "*.pdf"
+      register: pdf_files
+    - name: Move found files to a common folder
+      command: mv "{{ item.path }}" /Users/jenishjain/Desktop/pdfs/
+      with_items: "{{ pdf_files.files }}"
+    - name: Finds all CSVs in Desktop directory
+      find:
+        path: /Users/jenishjain/Desktop/
+        patterns: "*.csv"
+      register: csv_files
+    - name: Move found files to a common folder
+      command: mv "{{ item.path }}" /Users/jenishjain/Desktop/sheets/
+      with_items: "{{ csv_files.files }}"
