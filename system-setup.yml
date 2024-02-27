@@ -1,0 +1,100 @@
+- name: Set up a brand-new ARM-based Mac system with basic tools for development
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  become: true
+
+  tasks:
+    - name: Read input variables from a file
+      include_vars:
+        file: variables.yml
+
+    - name: Check if Xcode is installed
+      command: xcode-select --version
+      register: xcode_installed
+
+    - name: Install Xcode if it is not already installed
+      block:
+        - name: Install Xcode
+          package:
+            name: xcode-cli
+            state: present
+      when: not xcode_installed.stdout
+
+    - name: Check if Homebrew is installed
+      command: brew --version
+      register: homebrew_installed
+
+    - name: Install Homebrew if it is not already installed
+      block:
+        - name: Install Homebrew
+          package:
+            name: homebrew/cask/brew-cask
+            state: present
+      when: not homebrew_installed.stdout
+
+    - name: Install basic tools
+      block:
+        - name: Install Node.js
+          homebrew: name=node state=installed
+        - name: Install Python 3
+          package:
+            name: python3
+            state: present
+        - name: Install cURL
+          package:
+            name: curl
+            state: present
+        - name: Install Git
+          package:
+            name: git
+            state: present
+        - name: Install Docker
+          package:
+            name: docker
+            state: present
+      when: tools.basic
+
+    - name: Install additional tools
+      block:
+        - name: Install Visual Studio Code
+          package:
+            name: visual-studio-code
+            state: present
+        - name: Install Sublime Text
+          package:
+            name: sublime-text
+            state: present
+        - name: Install Insomnia
+          package:
+            name: insomnia
+            state: present
+      when: tools.additional
+
+    - name: Set up SSH
+      block:
+        - name: Generate an SSH key
+          shell: ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519
+        - name: Add the SSH key to the SSH agent
+          shell: ssh-add ~/.ssh/id_ed25519
+        - name: Copy the SSH public key to the clipboard
+          shell: pbcopy < ~/.ssh/id_ed25519.pub
+      when: tools.ssh
+
+    - name: Set up dotfiles
+      block:
+        - name: Clone the dotfiles repository
+          git:
+            repo: https://github.com/username/dotfiles
+            dest: ~/dotfiles
+        - name: Symlink the dotfiles
+          file:
+            src: ~/dotfiles/.zshrc
+            dest: ~/.zshrc
+            state: link
+        - name: Install oh-my-zsh
+          shell: sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+      when: tools.dotfiles
+
+    - name: Restart the shell
+      shell: exec zsh

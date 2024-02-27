@@ -1,0 +1,7 @@
+# Basic tools
+tools:
+  basic: true
+  additional: true
+  ssh: false
+  dotfiles: false
+  development: false
